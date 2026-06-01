@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Tirage au sort avec roulette — sécurité routière"
+    />
+    <title>Tirage au sort — Roulette</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Tirage au sort</h1>
+      <p>Roulette interactive pour tirer une personne ou attribuer un thème</p>
+    </header>
+
+    <main>
+      <nav class="mode-tabs" aria-label="Modes de tirage">
+        <button
+          type="button"
+          class="mode-tab active"
+          data-mode="personne"
+          aria-selected="true"
+        >
+          Tirer une personne
+        </button>
+        <button
+          type="button"
+          class="mode-tab"
+          data-mode="theme"
+          aria-selected="false"
+        >
+          Personne + thème
+        </button>
+      </nav>
+
+      <!-- Mode 1 : une personne parmi une liste -->
+      <section id="panel-personne" class="panel active" aria-labelledby="tab-personne">
+        <div class="card">
+          <h2>Liste des participants</h2>
+          <p class="hint">
+            Saisissez un nom par ligne (ou séparés par des virgules). Il faut au
+            moins 2 personnes pour lancer la roulette.
+          </p>
+          <textarea
+            id="mode1-names"
+            placeholder="Exemple :&#10;Marie Dupont&#10;Jean Martin&#10;Sophie Bernard"
+            aria-label="Liste des noms"
+          ></textarea>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="mode1-spin" disabled>
+              Lancer le tirage
+            </button>
+            <button type="button" class="btn btn-secondary" id="mode1-reset">
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Roulette</h2>
+          <div class="roulette-zone">
+            <div class="roulette-wrapper">
+              <div class="roulette-pointer" aria-hidden="true"></div>
+              <canvas id="mode1-canvas" width="400" height="400" role="img" aria-label="Roulette des participants"></canvas>
+            </div>
+            <p class="spinning-hint" id="mode1-hint" aria-live="polite"></p>
+            <div class="result-box" id="mode1-result" aria-live="polite">
+              <div class="label">Personne tirée</div>
+              <div class="value"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mode 2 : thème par personne -->
+      <section id="panel-theme" class="panel" aria-labelledby="tab-theme">
+        <div class="card">
+          <h2>Ajouter des participants</h2>
+          <p class="hint">
+            Ajoutez autant de personnes que vous souhaitez. Chaque personne
+            aura sa propre roulette pour tirer un thème parmi ceux définis dans
+            <code>data/themes.txt</code> (57 thèmes de sécurité routière).
+          </p>
+          <div class="input-row">
+            <input
+              type="text"
+              id="mode2-name-input"
+              placeholder="Nom du participant"
+              aria-label="Nom du participant"
+            />
+            <button type="button" class="btn btn-primary" id="mode2-add">
+              Ajouter
+            </button>
+          </div>
+          <ul class="participant-list" id="mode2-participant-list"></ul>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="mode2-spin-all" disabled>
+              Tirer pour tous
+            </button>
+            <button type="button" class="btn btn-secondary" id="mode2-reset">
+              Tout réinitialiser
+            </button>
+          </div>
+        </div>
+
+        <p class="empty-state" id="mode2-empty">
+          Ajoutez au moins un participant pour afficher les roulettes.
+        </p>
+        <div class="theme-cards" id="mode2-cards"></div>
+      </section>
+    </main>
+
+    <footer>
+      Site statique — GitHub Pages · Thèmes configurables dans
+      <code>data/themes.txt</code>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
