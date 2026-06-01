@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Tirage au sort avec roulette — sécurité routière"
+      content="Tirage au sort avec roulette — personnes et thèmes par catégorie"
     />
     <title>Tirage au sort — Roulette</title>
     <link rel="stylesheet" href="css/style.css" />
@@ -13,7 +13,7 @@
   <body>
     <header>
       <h1>Tirage au sort</h1>
-      <p>Roulette interactive pour tirer une personne ou attribuer un thème</p>
+      <p>Roulette interactive pour tirer une personne, un thème ou les deux</p>
     </header>
 
     <main>
@@ -29,6 +29,14 @@
         <button
           type="button"
           class="mode-tab"
+          data-mode="theme-seul"
+          aria-selected="false"
+        >
+          Tirer un thème
+        </button>
+        <button
+          type="button"
+          class="mode-tab"
           data-mode="theme"
           aria-selected="false"
         >
@@ -37,7 +45,7 @@
       </nav>
 
       <!-- Mode 1 : une personne parmi une liste -->
-      <section id="panel-personne" class="panel active" aria-labelledby="tab-personne">
+      <section id="panel-personne" class="panel active">
         <div class="card">
           <h2>Liste des participants</h2>
           <p class="hint">
@@ -64,7 +72,13 @@
           <div class="roulette-zone">
             <div class="roulette-wrapper">
               <div class="roulette-pointer" aria-hidden="true"></div>
-              <canvas id="mode1-canvas" width="400" height="400" role="img" aria-label="Roulette des participants"></canvas>
+              <canvas
+                id="mode1-canvas"
+                width="400"
+                height="400"
+                role="img"
+                aria-label="Roulette des participants"
+              ></canvas>
             </div>
             <p class="spinning-hint" id="mode1-hint" aria-live="polite"></p>
             <div class="result-box" id="mode1-result" aria-live="polite">
@@ -75,14 +89,68 @@
         </div>
       </section>
 
-      <!-- Mode 2 : thème par personne -->
-      <section id="panel-theme" class="panel" aria-labelledby="tab-theme">
+      <!-- Mode : tirer un thème seul -->
+      <section id="panel-theme-seul" class="panel">
         <div class="card">
-          <h2>Ajouter des participants</h2>
+          <h2>Catégorie de thèmes</h2>
+          <div class="category-field">
+            <label for="category-select-mode3">Choisir une catégorie</label>
+            <select
+              id="category-select-mode3"
+              class="category-select"
+              aria-describedby="mode3-category-desc"
+            ></select>
+            <p class="hint" id="mode3-category-desc" data-category-count></p>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="mode3-spin" disabled>
+              Lancer le tirage
+            </button>
+            <button type="button" class="btn btn-secondary" id="mode3-reset">
+              Effacer le résultat
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Roulette des thèmes</h2>
+          <div class="roulette-zone">
+            <div class="roulette-wrapper">
+              <div class="roulette-pointer" aria-hidden="true"></div>
+              <canvas
+                id="mode3-canvas"
+                width="400"
+                height="400"
+                role="img"
+                aria-label="Roulette des thèmes"
+              ></canvas>
+            </div>
+            <p class="spinning-hint" id="mode3-hint" aria-live="polite"></p>
+            <div class="result-box" id="mode3-result" aria-live="polite">
+              <div class="label">Thème tiré</div>
+              <div class="value"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mode 2 : thème par personne -->
+      <section id="panel-theme" class="panel">
+        <div class="card">
+          <h2>Catégorie et participants</h2>
+          <div class="category-field">
+            <label for="category-select-mode2">Catégorie de thèmes</label>
+            <select
+              id="category-select-mode2"
+              class="category-select"
+              aria-describedby="mode2-category-hint"
+            ></select>
+            <p class="hint" id="mode2-category-hint" data-category-count></p>
+          </div>
           <p class="hint">
-            Ajoutez autant de personnes que vous souhaitez. Chaque personne
-            aura sa propre roulette pour tirer un thème parmi ceux définis dans
-            <code>data/themes.txt</code> (57 thèmes de sécurité routière).
+            Ajoutez autant de personnes que vous souhaitez. Chaque personne a sa
+            propre roulette. Utilisez <strong>Relancer</strong> dans la liste ou
+            sur la carte pour retirer une seule personne.
           </p>
           <div class="input-row">
             <input
@@ -97,13 +165,23 @@
           </div>
           <ul class="participant-list" id="mode2-participant-list"></ul>
           <div class="actions">
-            <button type="button" class="btn btn-primary" id="mode2-spin-all" disabled>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="mode2-spin-all"
+              disabled
+            >
               Tirer pour tous
             </button>
             <button type="button" class="btn btn-secondary" id="mode2-reset">
               Tout réinitialiser
             </button>
           </div>
+          <p
+            class="spinning-hint"
+            id="mode2-spin-all-hint"
+            aria-live="polite"
+          ></p>
         </div>
 
         <p class="empty-state" id="mode2-empty">
@@ -114,8 +192,9 @@
     </main>
 
     <footer>
-      Site statique — GitHub Pages · Thèmes configurables dans
-      <code>data/themes.txt</code>
+      Site statique — GitHub Pages · Catégories dans
+      <code>data/categories/</code> · Manifeste
+      <code>data/categories.json</code>
     </footer>
 
     <script type="module" src="js/app.js"></script>
