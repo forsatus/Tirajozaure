@@ -121,23 +121,22 @@ export class Roulette {
 
   /** Nombre de cases franchies entre deux angles de rotation. */
   _countSliceCrossings(prevRotation, nextRotation) {
-    const delta = this._pointerSlicePosition(prevRotation) - this._pointerSlicePosition(nextRotation);
-    return Math.max(0, Math.floor(delta + 1e-6));
+    const prevPos = this._pointerSlicePosition(prevRotation);
+    const nextPos = this._pointerSlicePosition(nextRotation);
+    if (nextPos >= prevPos) return 0;
+    return Math.floor(prevPos) - Math.floor(nextPos);
   }
 
   _playSliceTicks(prevRotation, nextRotation) {
     if (!this.sound) return;
 
-    const slice = (Math.PI * 2) / this.items.length;
     const crossings = this._countSliceCrossings(prevRotation, nextRotation);
     if (crossings === 0) return;
 
-    const angularSpeed = Math.abs(nextRotation - prevRotation) / slice;
-    const intensity = Math.min(1, angularSpeed / 3);
     const step = crossings > 1 ? Math.min(0.012, 0.016 / crossings) : 0;
 
     for (let i = 0; i < crossings; i++) {
-      this.sound.playTick(intensity, i * step);
+      this.sound.playTick(i * step);
     }
   }
 
