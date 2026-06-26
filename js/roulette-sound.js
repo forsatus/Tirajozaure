@@ -1,6 +1,6 @@
 /**
  * Sons de roulette synthétisés (Web Audio API) — clic mécanique à chaque case,
- * fanfare « tada » à la fin d'un tirage.
+ * fanfare « tada » (ou easter egg) à la fin d'un tirage.
  */
 export class RouletteSound {
   constructor() {
@@ -79,11 +79,24 @@ export class RouletteSound {
 
   /**
    * Fanfare « tada » (style victoire au solitaire) à la fin d'un tirage.
+   * 1 chance sur 20 : bruit de proute avec écho à la place.
    * @param {number} delay délai en secondes avant lecture
    */
   playWin(delay = 0) {
     if (!this.enabled) return;
 
+    if (Math.random() < 1 / 20) {
+      this.playFart(delay);
+      return;
+    }
+
+    this._playTada(delay);
+  }
+
+  /**
+   * @param {number} delay délai en secondes avant lecture
+   */
+  _playTada(delay = 0) {
     const ctx = this._ensureContext();
     if (!ctx) return;
 
@@ -142,6 +155,94 @@ export class RouletteSound {
       osc.start(chordStart + i * 0.008);
       osc.stop(chordStart + chordDuration + 0.05);
     });
+  }
+
+  /**
+   * Bruit de proute synthétisé avec écho (easter egg).
+   * @param {number} delay délai en secondes avant lecture
+   */
+  playFart(delay = 0) {
+    const ctx = this._ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime + delay;
+    const duration = 0.5 + Math.random() * 0.15;
+    const volume = 0.38;
+
+    const master = ctx.createGain();
+    master.gain.value = 1;
+    master.connect(ctx.destination);
+
+    const dry = ctx.createGain();
+    dry.gain.value = 0.65;
+
+    const echoDelay = ctx.createDelay(1.2);
+    echoDelay.delayTime.value = 0.16 + Math.random() * 0.06;
+
+    const echoFeedback = ctx.createGain();
+    echoFeedback.gain.value = 0.42;
+
+    const echoWet = ctx.createGain();
+    echoWet.gain.value = 0.55;
+
+    const sourceGain = ctx.createGain();
+    sourceGain.gain.setValueAtTime(0, now);
+    sourceGain.gain.linearRampToValueAtTime(volume, now + 0.025);
+    sourceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    sourceGain.connect(dry);
+    sourceGain.connect(echoDelay);
+    dry.connect(master);
+    echoDelay.connect(echoFeedback);
+    echoFeedback.connect(echoDelay);
+    echoDelay.connect(echoWet);
+    echoWet.connect(master);
+
+    const bufferSize = Math.ceil(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      brown = brown * 0.96 + white * 0.12;
+      const envelope = 1 - (i / bufferSize) * 0.55;
+      data[i] = brown * envelope;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "lowpass";
+    noiseFilter.frequency.setValueAtTime(280 + Math.random() * 80, now);
+    noiseFilter.frequency.exponentialRampToValueAtTime(55, now + duration * 0.9);
+    noiseFilter.Q.value = 1.4;
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(sourceGain);
+
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    const startFreq = 95 + Math.random() * 45;
+    osc.frequency.setValueAtTime(startFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(32, now + duration * 0.88);
+
+    const oscFilter = ctx.createBiquadFilter();
+    oscFilter.type = "lowpass";
+    oscFilter.frequency.value = 180;
+
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(volume * 0.35, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.75);
+
+    osc.connect(oscFilter);
+    oscFilter.connect(oscGain);
+    oscGain.connect(sourceGain);
+
+    noise.start(now);
+    noise.stop(now + duration + 0.05);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
   }
 }
 
