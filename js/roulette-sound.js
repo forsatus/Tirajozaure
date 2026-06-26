@@ -84,7 +84,7 @@ export class RouletteSound {
 
   /**
    * Fanfare « tada » (style victoire au solitaire) à la fin d'un tirage.
-   * 1 chance sur 10 : bruit de proute avec écho à la place.
+   * 1 chance sur 10 : bruit de proute à la place.
    * @param {number} delay délai en secondes avant lecture
    */
   playWin(delay = 0) {
@@ -163,7 +163,7 @@ export class RouletteSound {
   }
 
   /**
-   * Bruit de proute (fichier MP3) avec écho (easter egg).
+   * Bruit de proute (fichier MP3, easter egg).
    * @param {number} delay délai en secondes avant lecture
    */
   playFart(delay = 0) {
@@ -208,30 +208,11 @@ export class RouletteSound {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
 
-    const dry = ctx.createGain();
-    dry.gain.value = 0.7;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.9;
+    gain.connect(ctx.destination);
 
-    const echoDelay = ctx.createDelay(2);
-    echoDelay.delayTime.value = 0.18;
-
-    const echoFeedback = ctx.createGain();
-    echoFeedback.gain.value = 0.45;
-
-    const echoWet = ctx.createGain();
-    echoWet.gain.value = 0.5;
-
-    const master = ctx.createGain();
-    master.gain.value = 0.9;
-    master.connect(ctx.destination);
-
-    source.connect(dry);
-    source.connect(echoDelay);
-    dry.connect(master);
-    echoDelay.connect(echoFeedback);
-    echoFeedback.connect(echoDelay);
-    echoDelay.connect(echoWet);
-    echoWet.connect(master);
-
+    source.connect(gain);
     source.start(now);
   }
 }
