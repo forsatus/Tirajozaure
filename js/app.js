@@ -1,5 +1,6 @@
 import { Roulette } from "./roulette.js";
 import { rouletteSound } from "./roulette-sound.js";
+import { burstConfettiFromElement } from "./confetti.js";
 import {
   initCategories,
   selectCategory,
@@ -227,6 +228,7 @@ async function spinCard(card, { isRespin = false } = {}) {
   card._hint.textContent = "";
   card._result.classList.add("visible");
   card._result.querySelector(".value").textContent = winner;
+  burstConfettiFromElement(card._result);
   card._status.textContent = "Thème tiré";
   card.classList.add("done");
   setSpinLinkDisabled(card._spinBtn, true);
@@ -532,6 +534,7 @@ mode3SpinBtn.addEventListener("click", async (e) => {
   mode3Hint.textContent = "";
   mode3Result.classList.add("visible");
   mode3Result.querySelector(".value").textContent = winner;
+  burstConfettiFromElement(mode3Result);
   setSpinLinkDisabled(mode3SpinBtn, getThemes().length === 0);
 });
 
