@@ -84,13 +84,13 @@ export class RouletteSound {
 
   /**
    * Fanfare « tada » (style victoire au solitaire) à la fin d'un tirage.
-   * 1 chance sur 20 : bruit de proute avec écho à la place.
+   * 1 chance sur 10 : bruit de proute avec écho à la place.
    * @param {number} delay délai en secondes avant lecture
    */
   playWin(delay = 0) {
     if (!this.enabled) return;
 
-    if (Math.random() < 1 / 20) {
+    if (Math.random() < 1 / 10) {
       this.playFart(delay);
       return;
     }
