@@ -24,17 +24,16 @@ export class RouletteSound {
   }
 
   /**
-   * @param {number} intensity 0–1, lié à la vitesse angulaire instantanée
    * @param {number} delay délai en secondes avant lecture
    */
-  playTick(intensity = 1, delay = 0) {
+  playTick(delay = 0) {
     if (!this.enabled) return;
 
     const ctx = this._ensureContext();
     if (!ctx) return;
 
     const now = ctx.currentTime + delay;
-    const volume = 0.12 * Math.min(1, 0.35 + intensity * 0.65);
+    const volume = 0.12;
     const duration = 0.035 + Math.random() * 0.012;
 
     const master = ctx.createGain();
