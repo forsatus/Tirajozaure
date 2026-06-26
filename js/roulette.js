@@ -1,3 +1,5 @@
+import { rouletteSound } from "./roulette-sound.js";
+
 const WHEEL_COLORS = [
   "#f59e0b",
   "#3b82f6",
@@ -21,6 +23,7 @@ export class Roulette {
     this.spinning = false;
     this.size = options.size || 400;
     this.onSpinEnd = options.onSpinEnd || (() => {});
+    this.sound = options.sound !== undefined ? options.sound : rouletteSound;
     this.canvas.width = this.size;
     this.canvas.height = this.size;
   }
@@ -110,6 +113,34 @@ export class Roulette {
     return s.length > max ? s.slice(0, max - 1) + "…" : s;
   }
 
+  /** Position continue (en cases) sous le pointeur fixe en haut. */
+  _pointerSlicePosition(rotation) {
+    const slice = (Math.PI * 2) / this.items.length;
+    return (-Math.PI / 2 - rotation) / slice;
+  }
+
+  /** Nombre de cases franchies entre deux angles de rotation. */
+  _countSliceCrossings(prevRotation, nextRotation) {
+    const delta = this._pointerSlicePosition(prevRotation) - this._pointerSlicePosition(nextRotation);
+    return Math.max(0, Math.floor(delta + 1e-6));
+  }
+
+  _playSliceTicks(prevRotation, nextRotation) {
+    if (!this.sound) return;
+
+    const slice = (Math.PI * 2) / this.items.length;
+    const crossings = this._countSliceCrossings(prevRotation, nextRotation);
+    if (crossings === 0) return;
+
+    const angularSpeed = Math.abs(nextRotation - prevRotation) / slice;
+    const intensity = Math.min(1, angularSpeed / 3);
+    const step = crossings > 1 ? Math.min(0.012, 0.016 / crossings) : 0;
+
+    for (let i = 0; i < crossings; i++) {
+      this.sound.playTick(intensity, i * step);
+    }
+  }
+
   /**
    * Lance la roulette et retourne l'index gagnant (pointeur en haut = -PI/2).
    */
@@ -134,14 +165,19 @@ export class Roulette {
     const delta = targetRotation - startRotation;
     const duration = 4000 + Math.random() * 1500;
     const startTime = performance.now();
+    let prevRotation = startRotation;
 
     this.spinning = true;
+    this.sound?.unlock?.();
 
     return new Promise((resolve) => {
       const tick = (now) => {
         const t = Math.min(1, (now - startTime) / duration);
         const eased = 1 - Math.pow(1 - t, 4);
-        this.rotation = startRotation + delta * eased;
+        const nextRotation = startRotation + delta * eased;
+        this._playSliceTicks(prevRotation, nextRotation);
+        prevRotation = nextRotation;
+        this.rotation = nextRotation;
         this.draw();
 
         if (t < 1) {

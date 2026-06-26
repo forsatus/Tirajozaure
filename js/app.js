@@ -1,4 +1,5 @@
 import { Roulette } from "./roulette.js";
+import { rouletteSound } from "./roulette-sound.js";
 import {
   initCategories,
   selectCategory,
@@ -37,8 +38,14 @@ const mode3ResetBtn = document.getElementById("mode3-reset");
 const mode3Result = document.getElementById("mode3-result");
 const mode3Hint = document.getElementById("mode3-hint");
 
+function unlockRouletteAudio() {
+  rouletteSound.unlock();
+}
+
 const rouletteMode1 = new Roulette(mode1Canvas, { size: 400 });
 const rouletteMode3 = new Roulette(mode3Canvas, { size: 400 });
+
+document.addEventListener("click", unlockRouletteAudio, { once: true });
 
 /** @type {Map<string, object>} */
 const participantCards = new Map();
