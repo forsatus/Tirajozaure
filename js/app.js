@@ -63,13 +63,13 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function scrollToRoulette(container) {
-  if (!container) return;
-  const zone = container.classList.contains("roulette-zone")
-    ? container
-    : container.querySelector(".roulette-zone");
-  if (!zone) return;
-  zone.scrollIntoView({ behavior: "smooth", block: "center" });
+function setSpinLinkDisabled(link, disabled) {
+  if (!link) return;
+  link.setAttribute("aria-disabled", disabled ? "true" : "false");
+}
+
+function isSpinLinkDisabled(link) {
+  return link?.getAttribute("aria-disabled") === "true";
 }
 
 function switchMode(mode) {
@@ -134,7 +134,7 @@ async function onCategoryChange(categoryId) {
   if (hadParticipants) {
     renderMode2Cards();
   }
-  mode3SpinBtn.disabled = getThemes().length === 0;
+  setSpinLinkDisabled(mode3SpinBtn, getThemes().length === 0);
 }
 
 categorySelects.forEach((select) => {
@@ -179,9 +179,9 @@ function releaseThemeForCard(card) {
 function prepareCardForSpin(card) {
   releaseThemeForCard(card);
   card.classList.remove("done");
-  card._spinBtn.disabled = false;
+  setSpinLinkDisabled(card._spinBtn, false);
   card._spinBtn.textContent = "Tirer un thème";
-  card._respinBtn.disabled = false;
+  setSpinLinkDisabled(card._respinBtn, false);
   card._status.textContent = "Prêt pour le tirage";
   card._result.classList.remove("visible");
   card._hint.textContent = "";
@@ -202,15 +202,18 @@ async function spinCard(card, { isRespin = false } = {}) {
   const themes = getThemes();
   if (!roulette || roulette.isSpinning() || themes.length === 0) return false;
 
-  scrollToRoulette(card);
+  const zone = card.querySelector(".roulette-zone");
+  if (zone?.id) {
+    location.hash = zone.id;
+  }
 
   if (isRespin) {
     prepareCardForSpin(card);
   }
 
-  card._spinBtn.disabled = true;
-  card._respinBtn.disabled = true;
-  mode2SpinAllBtn.disabled = true;
+  setSpinLinkDisabled(card._spinBtn, true);
+  setSpinLinkDisabled(card._respinBtn, true);
+  setSpinLinkDisabled(mode2SpinAllBtn, true);
   card._hint.textContent = "La roulette tourne…";
   card._result.classList.remove("visible");
   card.classList.remove("done");
@@ -226,10 +229,10 @@ async function spinCard(card, { isRespin = false } = {}) {
   card._result.querySelector(".value").textContent = winner;
   card._status.textContent = "Thème tiré";
   card.classList.add("done");
-  card._spinBtn.disabled = true;
+  setSpinLinkDisabled(card._spinBtn, true);
   card._spinBtn.textContent = "Thème tiré";
-  card._respinBtn.disabled = false;
-  mode2SpinAllBtn.disabled = mode2Participants.length === 0;
+  setSpinLinkDisabled(card._respinBtn, false);
+  setSpinLinkDisabled(mode2SpinAllBtn, mode2Participants.length === 0);
 
   return true;
 }
@@ -243,7 +246,7 @@ function respinParticipant(participantId) {
 function updateMode1Wheel() {
   const names = parseNamesFromText(mode1Textarea.value);
   rouletteMode1.setItems(names);
-  mode1SpinBtn.disabled = names.length < 2;
+  setSpinLinkDisabled(mode1SpinBtn, names.length < 2);
 }
 
 mode1Textarea.addEventListener("input", () => {
@@ -251,13 +254,18 @@ mode1Textarea.addEventListener("input", () => {
   updateMode1Wheel();
 });
 
-mode1SpinBtn.addEventListener("click", async () => {
+mode1SpinBtn.addEventListener("click", async (e) => {
   const names = parseNamesFromText(mode1Textarea.value);
-  if (names.length < 2 || rouletteMode1.isSpinning()) return;
+  if (
+    names.length < 2 ||
+    rouletteMode1.isSpinning() ||
+    isSpinLinkDisabled(mode1SpinBtn)
+  ) {
+    e.preventDefault();
+    return;
+  }
 
-  scrollToRoulette(mode1Canvas);
-
-  mode1SpinBtn.disabled = true;
+  setSpinLinkDisabled(mode1SpinBtn, true);
   mode1Hint.textContent = "La roulette tourne…";
   mode1Result.classList.remove("visible");
 
@@ -265,7 +273,7 @@ mode1SpinBtn.addEventListener("click", async () => {
   mode1Hint.textContent = "";
   mode1Result.classList.add("visible");
   mode1Result.querySelector(".value").textContent = winner;
-  mode1SpinBtn.disabled = names.length < 2;
+  setSpinLinkDisabled(mode1SpinBtn, names.length < 2);
 });
 
 mode1ResetBtn.addEventListener("click", () => {
@@ -284,12 +292,18 @@ function renderMode2List() {
     const actions = document.createElement("div");
     actions.className = "list-actions";
 
-    const relancerBtn = document.createElement("button");
-    relancerBtn.type = "button";
+    const relancerBtn = document.createElement("a");
+    relancerBtn.href = `#roulette-${p.id}`;
     relancerBtn.className = "btn btn-small btn-secondary relancer-btn";
     relancerBtn.textContent = "Relancer";
-    relancerBtn.disabled = !participantCards.has(p.id);
-    relancerBtn.addEventListener("click", () => respinParticipant(p.id));
+    setSpinLinkDisabled(relancerBtn, !participantCards.has(p.id));
+    relancerBtn.addEventListener("click", (e) => {
+      if (isSpinLinkDisabled(relancerBtn)) {
+        e.preventDefault();
+        return;
+      }
+      respinParticipant(p.id);
+    });
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
@@ -312,7 +326,7 @@ function renderMode2List() {
     li._relancerBtn = relancerBtn;
   });
 
-  mode2SpinAllBtn.disabled = mode2Participants.length === 0;
+  setSpinLinkDisabled(mode2SpinAllBtn, mode2Participants.length === 0);
   mode2Empty.style.display =
     mode2Participants.length === 0 ? "block" : "none";
 }
@@ -337,6 +351,7 @@ function renderMode2Cards() {
 
     const zone = document.createElement("div");
     zone.className = "roulette-zone";
+    zone.id = `roulette-${p.id}`;
 
     const wrapper = document.createElement("div");
     wrapper.className = "roulette-wrapper";
@@ -351,16 +366,16 @@ function renderMode2Cards() {
     const btnRow = document.createElement("div");
     btnRow.className = "card-actions";
 
-    const spinBtn = document.createElement("button");
-    spinBtn.type = "button";
+    const spinBtn = document.createElement("a");
+    spinBtn.href = `#roulette-${p.id}`;
     spinBtn.className = "btn btn-primary";
     spinBtn.textContent = "Tirer un thème";
 
-    const respinBtn = document.createElement("button");
-    respinBtn.type = "button";
+    const respinBtn = document.createElement("a");
+    respinBtn.href = `#roulette-${p.id}`;
     respinBtn.className = "btn btn-secondary";
     respinBtn.textContent = "Relancer";
-    respinBtn.disabled = true;
+    setSpinLinkDisabled(respinBtn, true);
 
     const hint = document.createElement("p");
     hint.className = "spinning-hint";
@@ -373,8 +388,20 @@ function renderMode2Cards() {
     const roulette = new Roulette(canvas, { size: 280 });
     buildThemeWheel(roulette);
 
-    spinBtn.addEventListener("click", () => spinCard(card));
-    respinBtn.addEventListener("click", () => spinCard(card, { isRespin: true }));
+    spinBtn.addEventListener("click", (e) => {
+      if (isSpinLinkDisabled(spinBtn)) {
+        e.preventDefault();
+        return;
+      }
+      spinCard(card);
+    });
+    respinBtn.addEventListener("click", (e) => {
+      if (isSpinLinkDisabled(respinBtn)) {
+        e.preventDefault();
+        return;
+      }
+      spinCard(card, { isRespin: true });
+    });
 
     btnRow.appendChild(spinBtn);
     btnRow.appendChild(respinBtn);
@@ -429,7 +456,12 @@ mode2Input.addEventListener("keydown", (e) => {
   }
 });
 
-mode2SpinAllBtn.addEventListener("click", async () => {
+mode2SpinAllBtn.addEventListener("click", async (e) => {
+  if (isSpinLinkDisabled(mode2SpinAllBtn)) {
+    e.preventDefault();
+    return;
+  }
+
   const cards = [...mode2Cards.querySelectorAll(".theme-card")];
   if (cards.length === 0) return;
 
@@ -442,7 +474,7 @@ mode2SpinAllBtn.addEventListener("click", async () => {
     }
   }
 
-  mode2SpinAllBtn.disabled = true;
+  setSpinLinkDisabled(mode2SpinAllBtn, true);
   const globalHint = document.getElementById("mode2-spin-all-hint");
   if (globalHint) {
     globalHint.textContent =
@@ -460,7 +492,7 @@ mode2SpinAllBtn.addEventListener("click", async () => {
   }
 
   if (globalHint) globalHint.textContent = "";
-  mode2SpinAllBtn.disabled = mode2Participants.length === 0;
+  setSpinLinkDisabled(mode2SpinAllBtn, mode2Participants.length === 0);
 });
 
 mode2ResetBtn.addEventListener("click", () => {
@@ -476,16 +508,21 @@ mode2ResetBtn.addEventListener("click", () => {
 
 function updateMode3Wheel() {
   buildThemeWheel(rouletteMode3);
-  mode3SpinBtn.disabled = getThemes().length === 0;
+  setSpinLinkDisabled(mode3SpinBtn, getThemes().length === 0);
 }
 
-mode3SpinBtn.addEventListener("click", async () => {
+mode3SpinBtn.addEventListener("click", async (e) => {
   const themes = getThemes();
-  if (themes.length === 0 || rouletteMode3.isSpinning()) return;
+  if (
+    themes.length === 0 ||
+    rouletteMode3.isSpinning() ||
+    isSpinLinkDisabled(mode3SpinBtn)
+  ) {
+    e.preventDefault();
+    return;
+  }
 
-  scrollToRoulette(mode3Canvas);
-
-  mode3SpinBtn.disabled = true;
+  setSpinLinkDisabled(mode3SpinBtn, true);
   mode3Hint.textContent = "La roulette tourne…";
   mode3Result.classList.remove("visible");
 
@@ -495,7 +532,7 @@ mode3SpinBtn.addEventListener("click", async () => {
   mode3Hint.textContent = "";
   mode3Result.classList.add("visible");
   mode3Result.querySelector(".value").textContent = winner;
-  mode3SpinBtn.disabled = false;
+  setSpinLinkDisabled(mode3SpinBtn, getThemes().length === 0);
 });
 
 mode3ResetBtn.addEventListener("click", () => {
