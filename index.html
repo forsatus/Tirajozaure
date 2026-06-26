@@ -58,9 +58,9 @@
             aria-label="Liste des noms"
           ></textarea>
           <div class="actions">
-            <button type="button" class="btn btn-primary" id="mode1-spin" disabled>
+            <a href="#mode1-roulette" class="btn btn-primary" id="mode1-spin" aria-disabled="true">
               Lancer le tirage
-            </button>
+            </a>
             <button type="button" class="btn btn-secondary" id="mode1-reset">
               Réinitialiser
             </button>
@@ -69,7 +69,7 @@
 
         <div class="card">
           <h2>Roulette</h2>
-          <div class="roulette-zone">
+          <div class="roulette-zone" id="mode1-roulette">
             <div class="roulette-wrapper">
               <div class="roulette-pointer" aria-hidden="true"></div>
               <canvas
@@ -103,9 +103,9 @@
             <p class="hint" id="mode3-category-desc" data-category-count></p>
           </div>
           <div class="actions">
-            <button type="button" class="btn btn-primary" id="mode3-spin" disabled>
+            <a href="#mode3-roulette" class="btn btn-primary" id="mode3-spin" aria-disabled="true">
               Lancer le tirage
-            </button>
+            </a>
             <button type="button" class="btn btn-secondary" id="mode3-reset">
               Effacer le résultat
             </button>
@@ -114,7 +114,7 @@
 
         <div class="card">
           <h2>Roulette des thèmes</h2>
-          <div class="roulette-zone">
+          <div class="roulette-zone" id="mode3-roulette">
             <div class="roulette-wrapper">
               <div class="roulette-pointer" aria-hidden="true"></div>
               <canvas
@@ -165,14 +165,9 @@
           </div>
           <ul class="participant-list" id="mode2-participant-list"></ul>
           <div class="actions">
-            <button
-              type="button"
-              class="btn btn-primary"
-              id="mode2-spin-all"
-              disabled
-            >
+            <a href="#mode2-cards" class="btn btn-primary" id="mode2-spin-all" aria-disabled="true">
               Tirer pour tous
-            </button>
+            </a>
             <button type="button" class="btn btn-secondary" id="mode2-reset">
               Tout réinitialiser
             </button>
