@@ -63,6 +63,15 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function scrollToRoulette(container) {
+  if (!container) return;
+  const zone = container.classList.contains("roulette-zone")
+    ? container
+    : container.querySelector(".roulette-zone");
+  if (!zone) return;
+  zone.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 function switchMode(mode) {
   modeTabs.forEach((tab) => {
     tab.classList.toggle("active", tab.dataset.mode === mode);
@@ -193,6 +202,8 @@ async function spinCard(card, { isRespin = false } = {}) {
   const themes = getThemes();
   if (!roulette || roulette.isSpinning() || themes.length === 0) return false;
 
+  scrollToRoulette(card);
+
   if (isRespin) {
     prepareCardForSpin(card);
   }
@@ -243,6 +254,8 @@ mode1Textarea.addEventListener("input", () => {
 mode1SpinBtn.addEventListener("click", async () => {
   const names = parseNamesFromText(mode1Textarea.value);
   if (names.length < 2 || rouletteMode1.isSpinning()) return;
+
+  scrollToRoulette(mode1Canvas);
 
   mode1SpinBtn.disabled = true;
   mode1Hint.textContent = "La roulette tourne…";
@@ -469,6 +482,8 @@ function updateMode3Wheel() {
 mode3SpinBtn.addEventListener("click", async () => {
   const themes = getThemes();
   if (themes.length === 0 || rouletteMode3.isSpinning()) return;
+
+  scrollToRoulette(mode3Canvas);
 
   mode3SpinBtn.disabled = true;
   mode3Hint.textContent = "La roulette tourne…";
