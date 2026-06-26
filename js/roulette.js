@@ -185,6 +185,7 @@ export class Roulette {
           this.rotation = targetRotation % (Math.PI * 2);
           this.spinning = false;
           this.draw();
+          this.sound?.playWin?.();
           const winner = this.items[index];
           this.onSpinEnd(winner, index);
           resolve({ winner, index });
